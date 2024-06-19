@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    {{- include "argocd.labels" . | nindent 4 }}
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hello-node
+  namespace: argocd
+# spec:
+#   project: default
+#   source:
+#     repoURL: {{ .Values.repoURL }}
+#     targetRevision: HEAD
+#     path: {{ include "argocd.fullname" . }}
+#   destination:
+#     server: {{ .Values.server }}
+#     namespace: default
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+  helm:
+    releaseName: {{ include "argocd.fullname" . }}
+    values: |
+      replicaCount: {{ .Values.replicaCount }}
+      image:
+        repository: "{{ .Values.image.repository }}"
+        tag: latest
+        pullPolicy: {{ .Values.image.pullPolicy }}
+      service:
+        type: ClusterIP
+        port: 80
+      ingress:
+        enabled: false
+      resources: {}
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
